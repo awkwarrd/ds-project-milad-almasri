@@ -22,6 +22,22 @@ class TrainTransformer(BaseEstimator, TransformerMixin):
         transformed_train = train.merge(test_pairs, on=["shop_id", "item_id"])
         return transformed_train        
             
+class UniquenessTransformer(BaseEstimator, TransformerMixin):
+    def __init__(self, features):
+        self.features = features
+  
+    def fit(self, X, y=None):
+        return self
+    
+    def transform(self, X:pd.DataFrame, y=None):
+        X_copy = X.copy()
+        X_copy["index"] = X_copy.index
+        
+        X_group = X_copy.groupby(self.features).count().reset_index()
+        count_feature = X_group.columns[len(self.features)]
+        non_unique = X_group[X_group[count_feature] > 1]
+        X_copy.drop(X_copy.merge(non_unique, on=self.features)["index_x"].values, axis="rows", inplace=True)
+        return X_copy.drop(["index"], axis="columns")
 
 class MergeTransformer(BaseEstimator, TransformerMixin):
     
