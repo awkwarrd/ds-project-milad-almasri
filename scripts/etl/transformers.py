@@ -2,6 +2,8 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import OneHotEncoder
 
+from category_encoders import TargetEncoder
+
 from datetime import timedelta
 import pandas as pd
 import numpy as np
@@ -271,3 +273,48 @@ class OutliersCleaningTransformer(BaseEstimator, TransformerMixin):
             X_tf = X_tf[X_tf[column] <= value]
         
         return X_tf    
+    
+class LagsEncoder(BaseEstimator, TransformerMixin):
+    
+    def fit(self, X, y=None):
+        return self
+    
+    def transform(self, X, y=None):
+        lag_train = X.loc[:, ["date_block_num", "shop_id", "item_id", "item_cnt_day", "item_price"]]
+        print(lag_train.shape)	     
+        lag_train_agg = lag_train.groupby(["date_block_num", "shop_id", "item_id"]).agg({"item_price" : lambda x: x.mode()[0], "item_cnt_day" : "sum"})
+        for lag in range(1, 13):
+            lag_train_agg[f"item_price_lag_{lag}"] = lag_train_agg.groupby(["shop_id", "item_id"])["item_price"].shift(lag)
+            lag_train_agg[f"item_cnt_day_lag_{lag}"] = lag_train_agg.groupby(["shop_id", "item_id"])["item_cnt_day"].shift(lag)
+
+        lag_train_agg = lag_train_agg.reset_index()
+        print(lag_train_agg.shape)
+        fill_price_map = lag_train_agg.groupby(["shop_id", "item_id"])["item_price"].agg("first").to_dict()
+        fill_item_cnt_map = lag_train_agg.groupby(["shop_id", "item_id"])["item_cnt_day"].agg("first").to_dict()
+        
+        for lag in range(1, 13):
+            lag_train_agg[f"item_price_lag_{lag}"] = lag_train_agg.apply(
+        		lambda x: x[f"item_price_lag_{lag}"] if not np.isnan(x[f"item_price_lag_{lag}"]) else fill_price_map[(x["shop_id"], x["item_id"])], axis=1
+        )
+            lag_train_agg[f"item_cnt_day_lag_{lag}"] = lag_train_agg.apply(
+        		lambda x: x[f"item_cnt_day_lag_{lag}"] if not np.isnan(x[f"item_cnt_day_lag_{lag}"]) else fill_item_cnt_map[(x["shop_id"], x["item_id"])], axis=1
+        )
+        print(lag_train_agg.shape)
+        lag_train_agg = lag_train_agg.set_index(X.index)
+        return pd.concat([X, lag_train_agg.drop(["date_block_num", "shop_id", "item_id", "item_cnt_day", "item_price"], axis="columns")], axis="columns")
+    
+    
+class CategoryTargetEncoder(BaseEstimator, TransformerMixin):
+    
+    def __init__ (self, columns):
+        self.columns = columns
+        self.encoder = TargetEncoder()
+        
+    def fit(self, X, y=None):
+        self.encoder.fit(X.loc[:, self.columns], X.item_cnt_day)
+        return self
+        
+    def transform(self, X, y=None):
+        encoded = pd.DataFrame(self.encoder.transform(X.loc[:, self.columns]), columns=self.encoder.get_feature_names_out(), index=X.index)
+        X_transformed = pd.concat([X.drop(self.columns, axis="columns"), encoded], axis="columns")
+        return X_transformed
