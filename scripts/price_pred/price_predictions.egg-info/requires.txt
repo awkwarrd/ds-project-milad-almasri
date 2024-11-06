@@ -1,0 +1,6 @@
+numpy
+pandas
+scikit-learn==1.5.1
+category_encoders
+Boruta
+hyperopt

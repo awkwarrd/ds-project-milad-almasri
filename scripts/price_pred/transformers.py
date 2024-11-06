@@ -283,7 +283,7 @@ class LagsEncoder(BaseEstimator, TransformerMixin):
         lag_train = X.loc[:, ["date_block_num", "shop_id", "item_id", "item_cnt_day", "item_price"]]
         print(lag_train.shape)	     
         lag_train_agg = lag_train.groupby(["date_block_num", "shop_id", "item_id"]).agg({"item_price" : lambda x: x.mode()[0], "item_cnt_day" : "sum"})
-        for lag in range(1, 5):
+        for lag in range(1, 13):
             lag_train_agg[f"item_price_lag_{lag}"] = lag_train_agg.groupby(["shop_id", "item_id"])["item_price"].shift(lag)
             lag_train_agg[f"item_cnt_day_lag_{lag}"] = lag_train_agg.groupby(["shop_id", "item_id"])["item_cnt_day"].shift(lag)
 
@@ -292,7 +292,7 @@ class LagsEncoder(BaseEstimator, TransformerMixin):
         fill_price_map = lag_train_agg.groupby(["shop_id", "item_id"])["item_price"].agg("first").to_dict()
         fill_item_cnt_map = lag_train_agg.groupby(["shop_id", "item_id"])["item_cnt_day"].agg("first").to_dict()
         
-        for lag in range(1, 5):
+        for lag in range(1, 13):
             lag_train_agg[f"item_price_lag_{lag}"] = lag_train_agg.apply(
         		lambda x: x[f"item_price_lag_{lag}"] if not np.isnan(x[f"item_price_lag_{lag}"]) else fill_price_map[(x["shop_id"], x["item_id"])], axis=1
         )
@@ -318,3 +318,97 @@ class CategoryTargetEncoder(BaseEstimator, TransformerMixin):
         encoded = pd.DataFrame(self.encoder.transform(X.loc[:, self.columns]), columns=self.encoder.get_feature_names_out(), index=X.index)
         X_transformed = pd.concat([X.drop(self.columns, axis="columns"), encoded], axis="columns")
         return X_transformed
+    
+    
+class ColumnDropper(BaseEstimator, TransformerMixin):
+    
+    def __init__(self):
+        self.columns_to_save = list()
+    
+    def fit(self, X, y=None):
+        for feature in X.columns:
+            print(feature)
+            if X[feature].dtype != np.dtype("object") and X[feature].dtype != np.dtype("datetime64[ns]") :
+                self.columns_to_save.append(feature)
+            print(feature)
+        return self
+                
+    def transform(self, X, y=None):
+        return X.loc[:, self.columns_to_save]    
+    
+
+class AggregationTransformer(BaseEstimator, TransformerMixin):
+    
+    def __init__(self, start_date, periods):    
+        self.start_date = start_date
+        self.periods = periods
+        
+    def fit(self, X, y=None):
+        return self
+    
+    def transform(self, X, y=None):
+        date_range = pd.date_range(start=self.start_date, periods=self.periods, freq="MS")
+        date_blocks = [i for i in range(0, self.periods)]
+        dates_map = dict(zip(date_blocks, date_range))
+        
+        aggregated_X = X.drop(["date"], axis="columns")
+        aggregated_X = aggregated_X.groupby(["date_block_num", "shop_id", "item_id"]).agg({"item_price" : lambda x : x.mode()[0], "item_cnt_day": "sum"}).reset_index()
+        aggregated_X["date"] = aggregated_X["date_block_num"].apply(lambda x : dates_map[x])
+        return aggregated_X
+    
+class FeatureSelectionTransformer(BaseEstimator, TransformerMixin):
+    
+    def __init__(self, features):
+        self.features = features
+        
+        
+    def fit(self, X, y=None):
+        return self
+    
+    def transform(self, X, y=None):
+        return X.loc[:, self.features]
+    
+    
+class TestPreprocessTransformer(BaseEstimator, TransformerMixin):
+    
+    def __init__(self, raw_train, start_date, period):
+        self.train = raw_train
+        self.start_date = start_date
+        self.period = period
+        
+    def fit(self, X, y=None):
+        return self
+    
+    def transform(self, X, y=None):
+        X["date_block_num"] = self.period
+        X["date"] = pd.to_datetime(self.start_date, dayfirst=True)
+
+        item_price_map = self.train.loc[:, ["item_id", "shop_id", "item_price"]].groupby(["item_id", "shop_id"]).agg(lambda x : x.mode()[0]).to_dict()["item_price"]
+
+        X["item_price"] = X.apply(lambda x : item_price_map[(x["item_id"], x["shop_id"])] if (x["item_id"], x["shop_id"]) in item_price_map.keys() else -1, axis=1)
+        X["item_cnt_day"] = 0
+        return X[X["item_price"] != -1]
+    
+
+class TestTrainMergeTransformer(BaseEstimator, TransformerMixin):
+    
+    def __init__ (self, agg_train):
+        self.train = agg_train
+    
+    def fit(self, X, y=None):
+        return self
+    
+    def transform(self, X, y=None):
+        return pd.concat([self.train, X])
+    
+
+class TestSetExtractionTransformer(BaseEstimator, TransformerMixin):
+    
+    def fit(self, X, y=None):
+        self.test_month = X["date_block_num"].max()
+        return self
+    
+    def transform(self, X, y=None):
+        return X[X["date_block_num"] == self.test_month]
+        
+    
