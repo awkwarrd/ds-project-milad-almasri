@@ -1,0 +1,13 @@
+Metadata-Version: 2.1
+Name: price_predictions
+Version: 1.0
+Home-page: https://github.com/awkwarrd/ds-project-milad-almasri.git
+Author: Milad
+Author-email: heregoesnothingowo@gmail.com
+Requires-Python: >=3.6
+Requires-Dist: numpy
+Requires-Dist: pandas
+Requires-Dist: scikit-learn==1.5.1
+Requires-Dist: category_encoders
+Requires-Dist: Boruta
+Requires-Dist: hyperopt
