@@ -376,7 +376,7 @@ class LagsEncoder(BaseEstimator, TransformerMixin):
         lag_train = X.loc[:, ["date_block_num", "shop_id", "item_id", "item_cnt_day", "item_price"]]
         print(lag_train.shape)	     
         lag_train_agg = lag_train.groupby(["date_block_num", "shop_id", "item_id"]).agg({"item_price" : lambda x: x.mode()[0], "item_cnt_day" : "sum"})
-        for lag in range(1, 4):
+        for lag in range(1, 5):
             lag_train_agg[f"item_price_lag_{lag}"] = lag_train_agg.groupby(["shop_id", "item_id"])["item_price"].shift(lag)
             lag_train_agg[f"item_cnt_day_lag_{lag}"] = lag_train_agg.groupby(["shop_id", "item_id"])["item_cnt_day"].shift(lag)
 
@@ -385,7 +385,7 @@ class LagsEncoder(BaseEstimator, TransformerMixin):
         fill_price_map = lag_train_agg.groupby(["shop_id", "item_id"])["item_price"].agg("first").to_dict()
         fill_item_cnt_map = lag_train_agg.groupby(["shop_id", "item_id"])["item_cnt_day"].agg("first").to_dict()
         
-        for lag in range(1, 4):
+        for lag in range(1, 5):
             lag_train_agg[f"item_price_lag_{lag}"] = lag_train_agg.apply(
         		lambda x: x[f"item_price_lag_{lag}"] if not np.isnan(x[f"item_price_lag_{lag}"]) else fill_price_map[(x["shop_id"], x["item_id"])], axis=1
         )
@@ -544,3 +544,22 @@ class TestSetExtractionTransformer(BaseEstimator, TransformerMixin):
     
     def transform(self, X, y=None):
         return X[X["date_block_num"] == self.test_month]
+    
+class CutDataFrameTransformer(BaseEstimator, TransformerMixin):
+    """
+    Support transformer, cretaed for preprocessing optimization purposes
+    
+    Cuts DataFrame to delete unnecessary dates
+    
+    Parameters:
+        date_block_num (_init_): Last date block number to keep in DataFrame
+    """
+    
+    def __init__ (self, date_block_num):
+        self.date_block_num = date_block_num
+        
+    def fit(self, X, y=None):
+        return self
+    
+    def transform(self, X, y=None):
+        return X[X["date_block_num"] >= self.date_block_num]

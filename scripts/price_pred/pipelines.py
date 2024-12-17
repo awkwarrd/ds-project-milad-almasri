@@ -155,9 +155,10 @@ class TestPreprocessingPipeline(BasePipeline):
     Preprocessing Steps:
     1. **TestPreprocessTransformer**: Transforms Test Data to the shape which corresponds to original Train Data
     2. **TestTrainMergeTransformer**: Concatenates Test and Train Datasets
-    3. **Feature Extraction**: Extracts new features using a bit modified ETL-EDA pipeline.
-    4. **FeatureSelectionTransformer**: Selects best features. **This implementation does not find them, but just chooses from list defined by user.** If you want to find them, use `price_pred.feature_selection.VotingSelector` 
-    5. **TestSetExtractionTransformer**. As we've merged train and test set, in this step, we delete train set and save only preprocessed test data.
+    3  **CutDataFrameTransformer**: First Cut - as we use only last 4 month for creating lags, we can safely delete earlier dates
+    4. **Feature Extraction**: Extracts new features using a bit modified ETL-EDA pipeline.
+    5  **CutDataFrameTransformer**: Second Cut - after creating lag features, we can safely delete all train data
+    6. **FeatureSelectionTransformer**: Selects best features. **This implementation does not find them, but just chooses from list defined by user.** If you want to find them, use `price_pred.feature_selection.VotingSelector` 
     
     All Transformers in this steps (except of **Feature Extraction** step) are defined in `price_pred.transformers` module
     """
@@ -183,9 +184,10 @@ class TestPreprocessingPipeline(BasePipeline):
         return Pipeline([
             ("test_preprocess", TestPreprocessTransformer(self.raw_train, self.start_date, self.period)),
             ("train_test_merge", TestTrainMergeTransformer(self.agg_train)),
+            ("first_cut", CutDataFrameTransformer(self.period - 4)),
             ("feature_extraction", test_preprocessing_pipeline),
+            ("second_cut", CutDataFrameTransformer(self.period)),
             ("features_selection", FeatureSelectionTransformer(self.features)),
-            ("test_set_extraction", TestSetExtractionTransformer())
         ])
 
 
