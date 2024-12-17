@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-This project is my internship project, that was created in order to show my machine learning and data science skills on close-to-real project. In this project I was creating model for sales volume predictions based on historical data and other features. Read more about problem: https://www.kaggle.com/competitions/competitive-data-science-predict-future-sales/overview
+This project is my internship project, that was created to show my machine learning and data science skills on close-to-real project. In this project I was creating model for sales volume predictions based on historical data and other features. Read more about problem: https://www.kaggle.com/competitions/competitive-data-science-predict-future-sales/overview
 
 ## 2. Motivation
 
@@ -30,36 +30,35 @@ This problem could be framed as a __Supervised Regression Problem based on Time 
 ### 5.2. Data
 For training process, model requires:
 1. Historical data about sales (date, shop id, item id, date block number, item price and sales per day)
-2. Info about Shops(shops info corresponding to their ids)
+2. Shops(shops info corresponding to their ids)
 3. Items (items info corresponding to their ids)
 4. Items categories (item category info corresponding to the item)
 
 For test process, model requires:
-1. What item in what shop is going to be predicted
+1. Shop and item ids
 2. Data for training process
 
 This raw data is going to be preprocessed with the help of different pipelines and passed to the model (read more in [5.3](#53-techniques))
 
 
 ### 5.3. Techniques
-For data preprocessing I have used different techniques. DQC and EDA processes, which had defined all preprocessing, are explained in `dqc.ipynb` and `eda.ipynb` files. Also there are transformers and pipelines for train/test preprocessing based on this two files, which you can find in `scripts/price_pred` folder or on [PyPI page](https://pypi.org/project/price-predictions/) and install it. This package contains all necessary transformers and pipelines for data preprocessing and documentation to it.
+For data preprocessing I have used different techniques. DQC and EDA processes, which had defined  preprocessing strategy, are explained in `dqc.ipynb` and `eda.ipynb` files. Also there are transformers and pipelines for train/test preprocessing based on this two files, which you can find in `scripts/price_pred` folder or on [PyPI page](https://pypi.org/project/price-predictions/) and install it. This package contains all necessary transformers and pipelines for data preprocessing and documentation to it.
 
 
 ### 5.4. Experimentation & Validation
->How will you validate your approach offline? What offline evaluation metrics will you use?
 
 #### 5.4.1 Model Validation
 
-As in this project we've worked with Time Series Data, For validation I've chosen `Expanding Window` approach for validation. Method for model validation is also included in `validation.py` file, which you can find in `scripts/price_pred` folder or on [PyPI page](https://pypi.org/project/price-predictions/) and install it. 
+As in this project we've worked with Time Series Data. For validation I've chosen `Expanding Window` approach for validation. Method for model validation is also included in `validation.py` file, which you can find in `scripts/price_pred` folder or on [PyPI page](https://pypi.org/project/price-predictions/) and install it. 
 
 #### 5.4.2 Feature Selection
-For Feature Selection process in this project, I've used combination of different statistical methods like `Pearson Correlation`, `ANOVA` and others with `Boruta Algorithm`
+For feature selection process in this project, I've used combination of different statistical methods like `Pearson Correlation`, `ANOVA` and others with `Boruta Algorithm`
 
-In first step, statistical methods vote for most promising features, and choose that features, which have at least 50% of votes. Then, based on this features, Boruta chooses final features, that are going to be fed into model. Feature Selection function could be find in `feature_selection.py` file in `scripts/price_pred` folder or on [PyPI page](https://pypi.org/project/price-predictions/).
+In first step, statistical methods vote for most promising features, and choose that features, which have at least 50% of votes. Then, based on this features, Boruta chooses final features, that are going to be 'fed' into model. Feature Selection function could be find in `feature_selection.py` file in `scripts/price_pred` folder or on [PyPI page](https://pypi.org/project/price-predictions/).
 
 
 ### 5.5. Human-in-the-loop
-User interacts with the system, deployed in the cloud with the help of API. It could ask model to predict sales by request and get results.
+User interacts with the system, deployed in the cloud, with the help of requests to the endpoints. User could ask model to predict sales by request and get results.
 
 ## 6. Deployment Details
 
