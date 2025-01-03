@@ -1,12 +1,19 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='transformers',
-    version='0.2',
+    name='price_predictions',
+    version="0.7",
+    author="Milad",
+    author_email="heregoesnothingowo@gmail.com",
+    url="https://github.com/awkwarrd/ds-project-milad-almasri.git",
     packages=find_packages(),
     install_requires=[
         'numpy',
         'pandas',
-        'scikit-learn',
+        'scikit-learn==1.5.1',
+        'category_encoders',
+        'Boruta',
+        'hyperopt',
     ],
+    python_requires=">=3.6",
 )

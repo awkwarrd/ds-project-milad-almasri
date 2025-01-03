@@ -1,0 +1,10 @@
+numpy
+pandas
+scikit-learn==1.5.1
+matplotlib
+seaborn
+price-predictions
+category-encoders
+dvc
+dvc-gdrive
+apache-airflow-providers-google
