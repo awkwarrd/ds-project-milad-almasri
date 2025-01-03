@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='price_predictions',
-    version="0.7",
+    version="1.1.1",
     author="Milad",
     author_email="heregoesnothingowo@gmail.com",
     url="https://github.com/awkwarrd/ds-project-milad-almasri.git",
