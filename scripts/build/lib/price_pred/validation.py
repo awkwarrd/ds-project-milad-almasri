@@ -2,18 +2,7 @@ from sklearn.metrics import root_mean_squared_error
 from sklearn.model_selection import TimeSeriesSplit
 
 class ModelValidation():
-    """ 
-    Class for Model Validation 
     
-    Validation scheme: Time Series Validation using Expanding Window method
-    
-    Parameters:
-        X (_DataFrame_) : Training data
-        y (_Series or array-like_) : Target values
-        model (_estimator/predictor_) : Model to validate
-        verbose (_int_) : Verobosity parameter. If `verbose > 1`, `validate` method will print logs during validation
-    
-    """
     def __init__(self, X, y, model, verbose=1):
         self.X = X
         self.y = y
@@ -22,17 +11,6 @@ class ModelValidation():
         
         
     def validate(self, n_splits):
-        """
-        Validate model
-
-        Parameters:
-            n_splits (_int_): Number of iteration
-
-        Returns:
-            *self* : Fitted object
-            
-        
-        """
         self.scores = []
         
         tscv = TimeSeriesSplit(n_splits=n_splits)
@@ -57,12 +35,6 @@ class ModelValidation():
 
 
     def score(self):
-        """
-        Compute score after validation
-
-        Returns:
-            *int*: Model Score
-        """
         return self.score.sum() / len(self.score)
     
      

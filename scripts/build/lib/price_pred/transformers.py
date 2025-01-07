@@ -9,12 +9,6 @@ import pandas as pd
 import numpy as np
 
 class TrainTransformer(BaseEstimator, TransformerMixin):
-    """
-    Keep only that records, which occure in test dataset.
-    
-    Parameters:
-        test (_DataFrame_): Test dataset
-    """
     
     def __init__ (self, test):
         self.test = test
@@ -31,12 +25,6 @@ class TrainTransformer(BaseEstimator, TransformerMixin):
         return transformed_train        
             
 class UniquenessTransformer(BaseEstimator, TransformerMixin):
-    """
-    Delete repeated records in DataFrame
-    
-    Parameters:
-        features (_list_): Features, which define uniqueness. Records, which have same values for this features, are defined as repeated.
-    """
     def __init__(self, features):
         self.features = features
   
@@ -54,12 +42,6 @@ class UniquenessTransformer(BaseEstimator, TransformerMixin):
         return X_copy.drop(["index"], axis="columns")
 
 class MergeTransformer(BaseEstimator, TransformerMixin):
-    """ 
-    Merge data from different dataframes into single one.
-    
-    Parameters:
-        merge_list (_list_): List of tuples `(DataFrame, column)`. Each DataFrame joins `X` on corresponding column
-    """
     
     def __init__ (self, merge_list):
         self.merge_list = merge_list
@@ -85,12 +67,6 @@ class MergeTransformer(BaseEstimator, TransformerMixin):
     
     
 class NegativeValueTransformer(BaseEstimator, TransformerMixin):
-    """
-    Delete negative values from DataFrame
-    
-    Parameters:
-        feature (_str_): Name of feature. All records, where this feature value is negative will be deleted
-    """
     
     def __init__ (self, feature):
         self.feature = feature
@@ -103,9 +79,6 @@ class NegativeValueTransformer(BaseEstimator, TransformerMixin):
     
 
 class OutliersTransformer(BaseEstimator, TransformerMixin):
-    """ 
-    Delete all records, where item price is more than 1000 
-    """
     def fit(self, X, y=None):
         return self
     
@@ -115,12 +88,6 @@ class OutliersTransformer(BaseEstimator, TransformerMixin):
     
     
 class DtypesTransformer(BaseEstimator, TransformerMixin):
-    """
-    Assign correct data types for columns
-    
-    Parameters:
-        feature_map (_dict_) : Defines, which data types to assign to corresponding features.
-    """
     
     def __init__ (self, feature_map):
         self.feature_map = feature_map
@@ -140,15 +107,6 @@ class DtypesTransformer(BaseEstimator, TransformerMixin):
         return X            
 
 class SeasonalityTransformer(BaseEstimator, TransformerMixin):
-    """ 
-    Create new features, based on dates. New features are:
-    - `weekday`
-    - `month`
-    - `year` 
-    
-    Parameters:
-        date_column (_str_): Name of column, which contains date information
-    """
     
     def __init__ (self, date_column):
         self.date_column = date_column
@@ -166,14 +124,7 @@ class SeasonalityTransformer(BaseEstimator, TransformerMixin):
     
     
 class EventsTransformer(BaseEstimator, TransformerMixin):
-    """ 
-    Create new features for different events. New features are:
-    - `is_NewYear` - **True**, if date is close to New Year (from 20.12 till 31.12), else **False**
-    - `is_OctoberSales` - **True**, if date is close to October Sales dates (from 01.10 till 10.10), else **False**
     
-    Parameters:
-        date_column (_str_): Name of column, which contains date information
-    """
     def __init__(self, date_column):
         self.date_column = date_column
     
@@ -189,13 +140,6 @@ class EventsTransformer(BaseEstimator, TransformerMixin):
     
     
 class PriceClusterTransform(BaseEstimator, TransformerMixin):
-    """
-    Create new features for different price clusters. Features are `One Hot Encoded` and each feature shows if record belongs to corresponding price cluster
-    
-    Parameters:
-        price_column (_str_) : Name of column, which contains price information
-        n_cluster (_str_) : Amount of clusters we want to create 
-    """
     
     def __init__ (self, price_column, n_clusters):
         self.price_column = price_column
@@ -240,12 +184,6 @@ def get_group(x:str):
 	return x[ : x.find("-")  - 1]
     
 class NewCategoriesTransformer(BaseEstimator, TransformerMixin): 
-    """ 
-    Create new features, based on shop names and item category names
-    
-    Shop and category names contain information about city, where shop is situated, type of shop and group of products, which corresponds to item.
-    This transformer extracts this information and creates new features. Features are `One Hot Encoded` and each feature shows if record belongs to feature or not. 
-    """
     
     def fit(self, X, y=None):
         return self
@@ -260,13 +198,6 @@ class NewCategoriesTransformer(BaseEstimator, TransformerMixin):
     
     
 class CategoryOneHotEncoder(BaseEstimator, TransformerMixin):
-    """ 
-    Encode categorical features using `sklearn.preprocessing.OneHotEncoder`
-    
-    Parameters:
-        columns (_list_): List of columns, which are going to be encoded
-    """
-    
     
     def __init__ (self, columns):
         self.columns = columns
@@ -283,15 +214,6 @@ class CategoryOneHotEncoder(BaseEstimator, TransformerMixin):
     
     
 class NewProductsTransformer(BaseEstimator, TransformerMixin):
-    """
-    Preprocess early item records
-    
-    Often in our data, when new items appear in shops, their sales are increased because of their novelty.
-    This transformer replaces data in first days (number of days is defined by `delta` parameter) with mode in order to generalize sales.
-    
-    Parameters:
-        delta (_int_) : Number of days in which we consider the product to be new
-    """
     
     def __init__(self, delta):
         self.delta = delta
@@ -324,12 +246,6 @@ class NewProductsTransformer(BaseEstimator, TransformerMixin):
     
     
 class IsOpenTransformer(BaseEstimator, TransformerMixin):
-    """ 
-    Create features which indicate if shop is still open
-    
-    Parameters:
-        delta (_int_): Number of month in which we consider the shop to be closed if we have no records about sales in it
-    """
     
     def __init__(self, delta):
         self.delta = delta
@@ -344,12 +260,6 @@ class IsOpenTransformer(BaseEstimator, TransformerMixin):
         return X_tf
 
 class OutliersCleaningTransformer(BaseEstimator, TransformerMixin):
-    """ 
-    Delete outliers according to outliers map
-    
-    Parameters:
-        outliers_map (_dict_) : Outliers Map. Each value shows what is the max value for key (feature) 
-    """
     
     def __init__(self, outliers_map):
         self.outliers_map = outliers_map
@@ -365,9 +275,6 @@ class OutliersCleaningTransformer(BaseEstimator, TransformerMixin):
         return X_tf    
     
 class LagsEncoder(BaseEstimator, TransformerMixin):
-    """ 
-    Create lags for **price** and **sales**. Number of lags is 4, which is defined by EDA stage.
-    """
     
     def fit(self, X, y=None):
         return self
@@ -376,7 +283,7 @@ class LagsEncoder(BaseEstimator, TransformerMixin):
         lag_train = X.loc[:, ["date_block_num", "shop_id", "item_id", "item_cnt_day", "item_price"]]
         print(lag_train.shape)	     
         lag_train_agg = lag_train.groupby(["date_block_num", "shop_id", "item_id"]).agg({"item_price" : lambda x: x.mode()[0], "item_cnt_day" : "sum"})
-        for lag in range(1, 5):
+        for lag in range(1, 13):
             lag_train_agg[f"item_price_lag_{lag}"] = lag_train_agg.groupby(["shop_id", "item_id"])["item_price"].shift(lag)
             lag_train_agg[f"item_cnt_day_lag_{lag}"] = lag_train_agg.groupby(["shop_id", "item_id"])["item_cnt_day"].shift(lag)
 
@@ -385,7 +292,7 @@ class LagsEncoder(BaseEstimator, TransformerMixin):
         fill_price_map = lag_train_agg.groupby(["shop_id", "item_id"])["item_price"].agg("first").to_dict()
         fill_item_cnt_map = lag_train_agg.groupby(["shop_id", "item_id"])["item_cnt_day"].agg("first").to_dict()
         
-        for lag in range(1, 5):
+        for lag in range(1, 13):
             lag_train_agg[f"item_price_lag_{lag}"] = lag_train_agg.apply(
         		lambda x: x[f"item_price_lag_{lag}"] if not np.isnan(x[f"item_price_lag_{lag}"]) else fill_price_map[(x["shop_id"], x["item_id"])], axis=1
         )
@@ -398,12 +305,6 @@ class LagsEncoder(BaseEstimator, TransformerMixin):
     
     
 class CategoryTargetEncoder(BaseEstimator, TransformerMixin):
-    """ 
-    Encode categorical features using `categorical_encoders.TargetEncoder`
-    
-    Parameters:
-        columns (_list_): List of columns, which are going to be encoded
-    """
     
     def __init__ (self, columns):
         self.columns = columns
@@ -420,12 +321,7 @@ class CategoryTargetEncoder(BaseEstimator, TransformerMixin):
     
     
 class ColumnDropper(BaseEstimator, TransformerMixin):
-    """
-    Save particular columns from DataFrame
     
-    Parameters:
-        columns_to_save (_list_): List of columns to save from DataFrame 
-    """
     def __init__(self):
         self.columns_to_save = list()
     
@@ -442,14 +338,7 @@ class ColumnDropper(BaseEstimator, TransformerMixin):
     
 
 class AggregationTransformer(BaseEstimator, TransformerMixin):
-    """
-    Aggregate DataFrame by months
     
-    Parameters:
-        start_date (_str_): Start date. This date defines from which date we will start to count date blocks 
-        periods (_int_): Number of months in DataFrame
-    """
-
     def __init__(self, start_date, periods):    
         self.start_date = start_date
         self.periods = periods
@@ -468,16 +357,10 @@ class AggregationTransformer(BaseEstimator, TransformerMixin):
         return aggregated_X
     
 class FeatureSelectionTransformer(BaseEstimator, TransformerMixin):
-    """
-    Select particular features from DataFrame
-    
-    Parameters:
-        features (_list_) : List of features to keep 
-    """    
-
     
     def __init__(self, features):
         self.features = features
+        
         
     def fit(self, X, y=None):
         return self
@@ -487,14 +370,6 @@ class FeatureSelectionTransformer(BaseEstimator, TransformerMixin):
     
     
 class TestPreprocessTransformer(BaseEstimator, TransformerMixin):
-    """ 
-    Preprocess test DataFrame. For test data we only know item and shop, so we need to preprocess DataFrame to be simmilar to train set
-    
-    Parameters:
-        raw_train (_DataFrame_) : Raw train data. We will use it to fill missing values in test set.
-        start_date (_str_): Start date. This date will fill `date` column in order to make test and train shapes same.
-        period (_int_): Number of month of test data.
-    """
     
     def __init__(self, raw_train, start_date, period):
         self.train = raw_train
@@ -516,12 +391,6 @@ class TestPreprocessTransformer(BaseEstimator, TransformerMixin):
     
 
 class TestTrainMergeTransformer(BaseEstimator, TransformerMixin):
-    """
-    Merge Train and Test DataFrame
-    
-    Parameters:
-        agg_train (_DataFrame_): Aggregated train DataFrame that will be merged with test.
-    """
     
     def __init__ (self, agg_train):
         self.train = agg_train
@@ -534,9 +403,6 @@ class TestTrainMergeTransformer(BaseEstimator, TransformerMixin):
     
 
 class TestSetExtractionTransformer(BaseEstimator, TransformerMixin):
-    """ 
-    Extract Test dataset from merged train-test
-    """
     
     def fit(self, X, y=None):
         self.test_month = X["date_block_num"].max()
@@ -544,22 +410,5 @@ class TestSetExtractionTransformer(BaseEstimator, TransformerMixin):
     
     def transform(self, X, y=None):
         return X[X["date_block_num"] == self.test_month]
-    
-class CutDataFrameTransformer(BaseEstimator, TransformerMixin):
-    """
-    Support transformer, cretaed for preprocessing optimization purposes
-    
-    Cuts DataFrame to delete unnecessary dates
-    
-    Parameters:
-        date_block_num (_init_): Last date block number to keep in DataFrame
-    """
-    
-    def __init__ (self, date_block_num):
-        self.date_block_num = date_block_num
         
-    def fit(self, X, y=None):
-        return self
     
-    def transform(self, X, y=None):
-        return X[X["date_block_num"] >= self.date_block_num]
